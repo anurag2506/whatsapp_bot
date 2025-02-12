@@ -6,3 +6,4 @@ and provide relevant insights. This will make managing your finances a breeze an
 <h3><b>Basic Workflow of the Project</b></h3>
 <p>The workflow starts off by the user sending a message like "Spent 300 on Coffee" and the relevant categories like: 
 <br> 1. Amount <br> 2. Category <br> 3. Description <br> are stored in the Postgress DB</p>
+<br><b> The choice of Postgres was clear because of easy SQL query look up and also because of its ability to store JSON objects. And also time-based querying was also possible.</b>
