@@ -12,8 +12,9 @@ and provide relevant insights. This will make managing your finances a breeze an
 
 <h3><b>Extra Features for Increasing the UI</b></h3>
 
-<p>1. Adding Charts to visualise the expenses better
-
-1. Starting the chat by letting the user choose the language of their choe  and then process every query in that language
-2. Using Basic solidity contracts for Authentication
-3. Adding a scheduler using Celery, Cron Jobs to automate the expenses report to the user(either on a daily or a weekly basis)</p>
+<p>
+1. Adding Charts to visualise the expenses better
+2. Starting the chat by letting the user choose the language of their choe  and then process every query in that language
+3. Using Basic solidity contracts for Authentication
+4. Adding a scheduler using Celery, Cron Jobs to automate the expenses report to the user(either on a daily or a weekly basis)
+</p>
