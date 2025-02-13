@@ -8,16 +8,8 @@ and provide relevant insights. This will make managing your finances a breeze an
 <br> 1. Amount <br> 2. Category <br> 3. Description <br> are stored in the Postgress DB</p>
 <br><b> The choice of Postgres was clear because of easy SQL query look up and also because of its ability to store JSON objects. And also time-based querying was also possible.</b><br>
 
-<p><b>The next step is to run Llama 3.2 7B on the input message and check whether the input message is a query or an expense instruction.</b> If the message is a query, then the whole DB is iterated in the 
-```python 
-your_code = do_some_stuff
-```
-route of the flask service and given to the LLM for processing Natural Language and then a relevant response is generated and sent to the user via WhatsApp.<br>If the message is a instruction, then it is made to pass through the 
-```python 
-add_expense
-```
-route.   
-All of this happens via the Twilio Sandbox for the WhatsApp API</p>
+<p><b>The next step is to run Llama 3.2 7B on the input message and check whether the input message is a query or an expense instruction.</b> If the message is a query, then the whole DB is iterated in the <b> 'process_query' </b> route of the flask service and given to the LLM for processing Natural Language and then a relevant response is generated and sent to the user via WhatsApp.<br>If the message is a instruction, then it is made to pass through the <b>'add_expense'</b> route.   
+All of this happens via the Twilio Sandbox for the WhatsApp API to fetch messages from the user and provide the response. </p>
 
 <h3><b>Extra Features for Increasing the UI</b></h3>
 
