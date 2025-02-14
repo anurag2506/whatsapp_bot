@@ -8,7 +8,7 @@ from twilio.twiml.messaging_response import MessagingResponse
 
 groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-
+# Classify the input message as an instruction or a question
 def classify_query(message):
     SYSTEM_PROMPT = """You are an expert in language comprehension, trained to classify user messages as either a 'question' or an 'instruction'.
     
@@ -35,14 +35,13 @@ def classify_query(message):
 
     return response.choices[0].message.content.strip()
 
+# Creating the app
 app = FastAPI()
-
-
 @app.get("/")
 def home():
     return {"message": "Expense tracker bot is running"}
 
-
+# Creating a whatsapp endpoint that will take in input user messages from the user and give the according response
 @app.post("/whatsapp/")
 def process_input_message(
     From: str = Form(...),
@@ -66,6 +65,7 @@ def process_input_message(
     return Response(str(twilio_response), media_type="text/xml")
 
 
+# If the message is classified as an instruction, then the expense is added to the expenses table in the postgres DB
 def add_expense(query: str, user_id: str):
     connection = get_db_connection()
     if connection is None:
@@ -104,7 +104,11 @@ def add_expense(query: str, user_id: str):
         cursor.close()
         connection.close()
 
-
+# If the message if classified as a question:
+'''
+1. The message is converted into a SQL query that can be run to fetch rows
+2. The results from the SQL query are passed into another LLM inference to provide human-readable insights
+'''
 def process_user_request(query: str, user_id:str):
     try:
         connection = get_db_connection()
