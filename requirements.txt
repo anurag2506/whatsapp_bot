@@ -3,3 +3,5 @@ re
 fastapi
 twilio
 sqlalchemy
+ngrok
+uvicorn
