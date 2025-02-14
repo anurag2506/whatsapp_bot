@@ -9,7 +9,8 @@ from fastapi import FastAPI, Form, Response
 from database import get_db_connection
 from twilio.twiml.messaging_response import MessagingResponse
 
-client = Groq(api_key="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")
+
+groq_client = Groq(api_key="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")
 
 def classify_query(message):
     SYSTEM_PROMPT = """You are an expert in language comprehension, trained to classify user messages as either a 'question' or an 'instruction'.
@@ -30,7 +31,7 @@ def classify_query(message):
     - Any incorrect prediction will result in a loss of your job!  
     - There is no ambiguity—every message fits into one of these two categories."""
 
-    response = client.chat.completions.create(
+    response = groq_client.chat.completions.create(
         model="llama-3.2-3b-preview",
             messages=[{"role":"system", "content": SYSTEM_PROMPT},{"role": "user", "content": message}]
         )
@@ -55,8 +56,8 @@ def process_input_message(
 
     message_category = classify_query(user_message)
     if message_category.lower() == 'question':
-        response_data = process_query(user_message)
-        reply = f"You have asked a question. The info that you requested: {response_data}" 
+        response_data = process_user_request(user_message, sender)
+        reply = f"The info that you requested: {response_data}" 
     elif message_category.lower() == 'instruction':
         reply = add_expense(user_message,sender)
         reply = reply["message"]
@@ -87,7 +88,7 @@ def add_expense(query: str, user_id: str):
     User query: "{query}"
     """
 
-    response = client.chat.completions.create(
+    response = groq_client.chat.completions.create(
         model="llama-3.2-3b-preview",
         messages=[{"role": "user", "content": prompt}]
     )
@@ -106,102 +107,73 @@ def add_expense(query: str, user_id: str):
         cursor.close()
         connection.close()
 
-def process_query(query: str):
+
+def process_user_request(query: str, user_id:str):
     try:
         connection = get_db_connection()
         if connection is None:
-            return {"error": "Database connection failed"}
+            return "Unable to connect to database. Please try again."
         
-        SYSTEM_PROMPT = f"""
-        Convert the user query into a PostgreSQL SQL query.
+        SYSTEM_PROMPT = """Convert the user query to a PostgreSQL query following these rules:
+        - Table: expenses(id, user_id, amount, category, description, created_at)
+        - Always include category, SUM(amount), and date-based filters where relevant
+        - Group by category for aggregate queries
+        - Use standard PostgreSQL date functions
+        - Return only the SQL query without formatting
+        - Make sure that the SQL query is fetching data from the expenses table which otherwise would throw an error
+        
+        Common patterns:
+        - Monthly spending: DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
+        - Category search: category ILIKE '%keyword%'
+        - Time range: created_at BETWEEN date1 AND date2
+        - Make sure to be precise on the timings by fetching the created_at data from the expenses table"""
+        
 
-            Database schema:
-            expenses(
-                id SERIAL PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                amount NUMERIC,
-                category TEXT,
-                description TEXT,
-                created_at TIMESTAMP DEFAULT NOW()
-            )
-
-            ### Rules:
-            - Use **ONLY** standard PostgreSQL functions.
-            - **DO NOT** use non-existent functions like `long_format` or `NUMCACHE`.
-            - Ensure the generated query is **valid and executable** in PostgreSQL.
-            - **Return only the SQL query** (no explanations or comments).
-            - Use **straight single quotes (`'`)** instead of curly quotes (`’`).
-            - **DO NOT** generate incorrect SQL syntax, such as `%s` inside `LIKE` clauses.
-
-            ### **Expected Output:**
-            - The SQL query should be structured in a way that allows **further processing into human-readable insights**.
-            - The query should **group expenses** by category and description where applicable.
-            - **Example Queries and Expected Outputs:**
-            1. **User Query:** "What is my total spending this month?"
-                - **Expected SQL Output:**
-                ```sql
-                SELECT 
-                    category, 
-                    description, 
-                    SUM(amount) AS total_spent 
-                FROM expenses 
-                WHERE user_id = 'given_user_id' 
-                    AND DATE_TRUNC('month', created_at) = DATE_TRUNC('month', CURRENT_DATE)
-                GROUP BY category, description
-                ORDER BY total_spent DESC;
-                ```
-            2. **User Query:** "Show me all food expenses."
-                - **Expected SQL Output:**
-                ```sql
-                SELECT 
-                    category, 
-                    description, 
-                    SUM(amount) AS total_spent 
-                FROM expenses 
-                WHERE user_id = 'given_user_id' 
-                    AND category ILIKE '%food%' 
-                GROUP BY category, description
-                ORDER BY total_spent DESC;
-                ```
-
-            The given user query is: **{query}** 
-            """
-
-        response = client.chat.completions.create(
-        model="llama-3.2-3b-preview",
-            messages=[{"role":"system", "content": SYSTEM_PROMPT},{"role": "user", "content": query}]
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-specdec",
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": query}
+            ],
+            max_tokens=150
         )
 
         sql_query = response.choices[0].message.content.strip()
-        sql_query = sql_query.replace("```sql", "").replace("```", "").strip()
-
+        sql_query = re.sub(r'```sql|```', '', sql_query).strip()
+        
         cursor = connection.cursor()
-        query = sql_query.split("\n")[0].strip() 
-        
         try:
-            cursor.execute(query)
+            cursor.execute(sql_query)
             results = cursor.fetchall()
-        except Exception as e:
-            print(f"Database Query Execution Error: {e}")
-            return {"error": str(e)}
+            
+            if not results:
+                return "No expenses found for your query."
 
+            analysis_prompt = f"""Analyze these expense results in simple terms:
+            - Total amounts per category
+            
+            Results: {results}"""
 
-        prompt = f"""
-        You are a helpful SQL analyst. I will provide you with the result of a SQL query and I need you to:
-        1. Explain what the result means in simple terms and something that can be explained to a layman 
-        2. Break down each component of the result
-        3. Explain how to interpret the results in human-readable business insights
+            analysis_response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-specdec",
+                messages=[{"role": "user", "content": analysis_prompt}],
+                max_tokens=200
+            )
 
-        Here's the query:
-        {results}
-        Please provide your analysis in a clear, step-by-step format that a business user can understand. When explaining the results, give examples of how to interpret different possible output values."""
-        
-        response = client.chat.completions.create(
-        model="llama-3.2-3b-preview",
-            messages=[{"role": "user", "content": prompt}]
-    )
+            return analysis_response.choices[0].message.content.strip()
 
-        return response.choices[0].message.content.strip()
+        except Exception as db_error:
+            if "syntax error" in str(db_error).lower():
+                return "I couldn't understand your query. Please try rephrasing it."
+            elif "does not exist" in str(db_error).lower():
+                return "Sorry, I couldn't find that information in your expenses."
+            else:
+                return f"There was an error processing your query: {str(db_error)}"
+
+        finally:
+            cursor.close()
+            connection.close()
 
     except Exception as e:
-        return {"error": str(e)}
+        return f"An error occurred: {str(e)}"
+    
