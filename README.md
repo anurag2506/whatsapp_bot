@@ -14,13 +14,13 @@ All of this happens via the Twilio Sandbox for the WhatsApp API to fetch message
 
 <h3><b>Things to Improve On:</b></h3>
 <p>
-  1. Generality of queries 
-  2. Questions that require really complex queries for fetching results
+  1. Generality of queries <br>
+  2. Questions that require really complex queries for fetching results<br>
   3. Adding a scheduler that automatically calls the endpoint to start the service so that users can start off messaging whenever 
 </p>
+<br>
 
 <h3><b>Extra Features for Increasing the UI</b></h3>
-
 <p>
 1. Adding Charts to visualise the expenses better<br>
 2. Starting the chat by letting the user choose the language of their choe  and then process every query in that language<br>
