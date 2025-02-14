@@ -1,16 +1,13 @@
 import groq
 import os
-import dotenv
 import re
-from dotenv import load_dotenv
-load_dotenv()
 from groq import Groq
 from fastapi import FastAPI, Form, Response
 from database import get_db_connection
 from twilio.twiml.messaging_response import MessagingResponse
 
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-groq_client = Groq(api_key="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")
 
 def classify_query(message):
     SYSTEM_PROMPT = """You are an expert in language comprehension, trained to classify user messages as either a 'question' or an 'instruction'.
