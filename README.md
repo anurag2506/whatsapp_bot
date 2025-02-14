@@ -12,6 +12,13 @@ and provide relevant insights. This will make managing your finances a breeze an
 <p><b>The next step is to run Llama 3.2 7B on the input message and check whether the input message is a query or an expense instruction.</b> If the message is a query, then the whole DB is iterated in the <b> 'process_query' </b> route of the flask service and given to the LLM for processing Natural Language and then a relevant response is generated and sent to the user via WhatsApp.<br>If the message is a instruction, then it is made to pass through the <b>'add_expense'</b> route.   
 All of this happens via the Twilio Sandbox for the WhatsApp API to fetch messages from the user and provide the response. </p>
 
+<h3><b>Things to Improve On:</b></h3>
+<p>
+  1. Generality of queries 
+  2. Questions that require really complex queries for fetching results
+  3. Adding a scheduler that automatically calls the endpoint to start the service so that users can start off messaging whenever 
+</p>
+
 <h3><b>Extra Features for Increasing the UI</b></h3>
 
 <p>
