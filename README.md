@@ -18,12 +18,14 @@ All of this happens via the Twilio Sandbox for the WhatsApp API to fetch message
   2. Questions that require really complex queries for fetching results<br>
   3. Adding a scheduler that automatically calls the endpoint to start the service so that users can start off messaging whenever 
 </p>
-<br>
 
-<h3><b>Extra Features for Increasing the UI</b></h3>
+<h3><b>Extra Features to Enhance the model</b></h3>
 <p>
 1. Adding Charts to visualise the expenses better<br>
 2. Starting the chat by letting the user choose the language of their choe  and then process every query in that language<br>
 3. Using Basic solidity contracts for Authentication<br>
 4. Adding a scheduler using Celery, Cron Jobs to automate the expenses report to the user(either on a daily or a weekly basis)<br>
 </p>
+
+
+
