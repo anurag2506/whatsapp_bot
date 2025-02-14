@@ -2,5 +2,4 @@ groq
 fastapi
 twilio
 sqlalchemy
-ngrok
-uvicorn
+
