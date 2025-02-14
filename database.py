@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine
 from sqlalchemy.exc import SQLAlchemyError
-import openai
 
 DB_NAME = "expense_tracker_bot"
 DB_USER = "anuragprasad"
